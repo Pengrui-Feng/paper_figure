@@ -1,5 +1,7 @@
 !pip install netCDF4
 # routine to test "getfvcom" function
+# Written by Pengrui in early 2020 derived from other's code
+# Modified by JiM to add comments and rename from "get_model_temp.py" to "get_fvcom_model_temp.py"
 from datetime import datetime as dt
 from datetime import timedelta as td
 from dateutil import parser
