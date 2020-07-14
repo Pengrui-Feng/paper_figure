@@ -1,1 +1,6 @@
 plot figure to compare profile curve among turtle ship and models
+Four programs to run sequentially:
+1) combine_several_files.py
+2) match_ship_turtle.py
+3) get_model_temp.py
+4) plot_ship_turtle_model.py (input from this is cut&pasted from the output of step#3)
