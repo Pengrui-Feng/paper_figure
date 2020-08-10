@@ -1,20 +1,44 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu Apr 24 14:49:34 2020
-Plot error bar and ratio of error between turtle and ship and models.
+Plot error bar and ratio of error between turtle and ship and 3 models.
 @author: pengrui
 """
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
-#import turtleModule
 
 path='/content/drive/My Drive/'
-data = pd.read_csv('notnull_stm.csv')
+data = pd.read_csv('matched_ship_turtle_models.csv')
 
+def str2list(s, bracket=False):
+    '''
+    a is a string converted from a list
+    a = '[3,5,6,7,8]'
+    b = str2list(a, bracket=True)
+    or
+    a = '3,4,5,6'
+    b = str2list(a)
+    '''
+    if bracket:
+        s = s[:]
+    s = s.split(',')
+    s = [float(i) for i in s]
+    return s
+def str2ndlist(arg, bracket=False):
+    '''
+    convert list full of str to multidimensional arrays
+    '''
+    ret = []
+    for i in arg:
+        a = str2list(i, bracket=bracket)
+        ret.append(a)
+    # ret = np.array(ret)
+    return ret
 data.columns=['','ship_id',	'ship_time','ship_lat',	'ship_lon',	'ship_depth','ship_temp','turtle_id','turtle_time',	'turtle_lat','turtle_lon','turtle_depth','turtle_temp',	'FVCOM_temp','ROMS_temp'] 
-#data=data.dropna(subset=['ROMS_temp'])
+data=data[data['FVCOM_temp'].str.contains('nan') == False]   ### delate the rows if it includes 'nan' 
+data=data[data['ROMS_temp'].str.contains('nan') == False]
 shipdepth=pd.Series(str2ndlist(data['ship_depth']))
 shiptemp=pd.Series(str2ndlist(data['ship_temp']))
 ttemp = pd.Series(str2ndlist(data['turtle_temp']))
