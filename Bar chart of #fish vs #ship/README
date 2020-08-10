@@ -1,1 +1,3 @@
 plot bar figure about showing num of turtles and ships per month and comparing
+1) run 'filter_ship_data.py', and get 'filtered_ship_data 09-18.csv'
+2) run 'plot_bar_chart.py'
