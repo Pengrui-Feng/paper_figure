@@ -1,46 +1,79 @@
 !pip install netCDF4
-# routine to test "getfvcom" function
+
 from datetime import datetime as dt
 from datetime import timedelta as td
 from dateutil import parser
+from tqdm import tqdm
+from datetime import datetime
 import pandas as pd
 import numpy as np
 import netCDF4
 import sys
 
-time1='2012-8-12 12:0:0'
-time2='2012-6-3 1:0:0'
-time3='2018-9-15 0:0:0'
-lat1,lon1 = 38.47,-74.38
-lat2,lon2 = 37.18,-74.94
-lat3,lon3 = 40.55,-72.5
+path='/content/drive/My Drive/'
+#read matched csv files
+Data = pd.read_csv(path+'matched_turtleVSship 09-18.csv')
+date = Data['turtle_time']
+lat = Data['turtle_lat']
+lon = Data['turtle_lon']
+depth = pd.Series(str2ndlist(Data['turtle_depth']))
 
-ftemp = []
-etemp = []
-for i in range(1,42):
-    depth= i
-    f = get_FVCOM_temp(lat3,lon3,time3,depth)
-    #e = get_espresso_temp(time3,lat3,lon3,depth)
-    e=get_doppio(lat3,lon3,time3,depth)
-    #fetemp.append(f)
-    etemp.append(e)
+FVCOM_temp = []
+ROMS_temp = []
 
-np.array(etemp)
+for i in tqdm(range(len(Data))):
+    FVCOM_temp1 = []
+    ROMS_temp1 = []
+    for j in range(len(depth[i])):
+        #d_temp=get_doppio(lat[i],lon[i],depth=depth[i][j],time=date[i])
+        f_temp=get_FVCOM_temp(lat[i],lon[i],dtime=date[i],depth=depth[i][j])
+        r_temp=get_espresso_temp(date[i],lat[i],lon[i],depth[i][j])
+        
+        f_temp=str(f_temp)
+        r_temp=str(r_temp)
+        #doppio_temp1.append(d_temp)
+        FVCOM_temp1.append(f_temp)
+        ROMS_temp1.append(r_temp)
+    #doppio_temp1=str(doppio_temp1)
+    FVCOM_temp1=str(FVCOM_temp1)
+    ROMS_temp1=str(ROMS_temp1)
+    punctuation = ['[', ']',"'"] 
+    for i in punctuation: 
+        FVCOM_temp1 = FVCOM_temp1.replace(i,"")
+        ROMS_temp1=ROMS_temp1.replace(i,"")
+    FVCOM_temp.append(FVCOM_temp1)
+    ROMS_temp.append(ROMS_temp1)
+Data['FVCOM_temp']=pd.DataFrame(FVCOM_temp)
+Data['ROMS_temp']=pd.DataFrame(ROMS_temp)
+Data=Data[['ship_id','ship_time','ship_lat','ship_lon','ship_depth','ship_temp','turtle_id','turtle_time','turtle_lat','turtle_lon','turtle_depth','turtle_temp','FVCOM_temp','ROMS_temp']]
+Data.to_csv(path+'matched_ship_turtle_models.csv')
 
 
-
+def str2list(s, bracket=False):
+    '''
+    a is a string converted from a list
+    a = '[3,5,6,7,8]'
+    b = str2list(a, bracket=True)
+    or
+    a = '3,4,5,6'
+    b = str2list(a)
+    '''
+    if bracket:
+        s = s[:]
+    s = s.split(',')
+    s = [float(i) for i in s]
+    return s
+def str2ndlist(arg, bracket=False):
+    '''
+    convert list full of str to multidimensional arrays
+    '''
+    ret = []
+    for i in arg:
+        a = str2list(i, bracket=bracket)
+        ret.append(a)
+    # ret = np.array(ret)
+    return ret
 def nearlonlat(lon,lat,lonp,latp): # needed for the next function get_FVCOM_bottom_temp
-    """
-    i=nearlonlat(lon,lat,lonp,latp) change
-    find the closest node in the array (lon,lat) to a point (lonp,latp)
-    input:
-        lon,lat - np.arrays of the grid nodes, spherical coordinates, degrees
-        lonp,latp - point on a sphere
-        output:
-            i - index of the closest node
-            For coordinates on a plane use function nearxy           
-            Vitalii Sheremet, FATE Project  
-    """
     cp=np.cos(latp*np.pi/180.)
     # approximation for small distance
     dx=(lon-lonp)*cp
