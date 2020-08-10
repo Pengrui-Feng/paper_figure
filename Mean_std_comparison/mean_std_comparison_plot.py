@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu Apr 24 14:49:34 2020
-Plot error bar and ratio of error between turtle and ship and 3 models.
+Plot error bar and ratio of error between turtle and ship and models.
 @author: pengrui
 """
 import numpy as np
@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 
 path='/content/drive/My Drive/'
-data = pd.read_csv('matched_ship_turtle_models.csv')
+data = pd.read_csv('matched_ship_turtle_models.csv')  #from 'get_matched_model_temp.py'
 
 def str2list(s, bracket=False):
     '''
