@@ -1,1 +1,2 @@
-plot figure for comparing mean std with ship,models
+plot figure for comparing temp mean std with ship,models
+run 'mean_std_comparison_plot.py', the input file is 'matched_ship_turtle_models.csv'
