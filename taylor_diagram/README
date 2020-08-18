@@ -1,2 +1,3 @@
 plot taylor diagram figure
-input file is from 'get_matched_model_temp.py',which is in the folder 'plot_ship_turtle_model'
+run 'taylor_diagram_with_ship.py', the input file is from 'get_matched_model_temp.py',which is in the folder 'plot_ship_turtle_model'
+or run 'taylor_diagram_without_ship.py', the input file is 'tuXXwModels.csv'
