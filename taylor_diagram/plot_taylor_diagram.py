@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sun May 31 15:04:25 2020
 
-@author: Mingchao
+Created on Mon 17 Aug  15:04:25 2020
+@author: Pengrui
 """
-
+! pip install XlsxWriter
+! pip install SkillMetrics
 import pandas as pd
 import numpy as np
-import skill_metrics as sm
-import datetime
 import matplotlib.pyplot as plt
-
-def taylor_statistics(p, r):
+import skill_metrics as sm   #  ! pip install SkillMetrics
+from scipy import stats
+#################### functions ############################
+def taylor_statistics(p, r):       
     # Calculate bias (B)
     bias = np.mean(p) - np.mean(r)
     # Calculate correlation coefficient
@@ -27,27 +28,54 @@ def taylor_statistics(p, r):
     # Store statistics in a dictionary
     stats = {'ccoef': ccoef, 'crmsd': crmsd, 'sdev': sdev, 'bias': bias}
     return stats
+def str2list(s, bracket=False):
+    if bracket:
+        s = s[1:-1]
+    s = s.split(',')
+    s = [float(i) for i in s]
+    return s
+def str2ndlist(arg, bracket=False):
+    #convert list full of str to multidimensional arrays
+    ret = []
+    for i in arg:
+        a = str2list(i, bracket=bracket)
+        ret.append(a)
+    # ret = np.array(ret)
+    return ret
+##################################### hardcodes ###############################
+path='/content/drive/My Drive/'
+data = pd.read_csv(path+'matched_ship_turtle_models.csv')
+#######################main##########################
+data=data[data['FVCOM_temp'].str.contains('nan') == False]   ### delate the rows if it includes 'nan' 
+data=data[data['ROMS_temp'].str.contains('nan') == False]
+shipdepth=pd.Series(str2ndlist(data['ship_depth']))
+shiptemp=pd.Series(str2ndlist(data['ship_temp']))
+ttemp = pd.Series(str2ndlist(data['turtle_temp']))
+tdepth = pd.Series(str2ndlist(data['turtle_depth']))
+fvcomTemp = pd.Series(np.array(str2ndlist(data['FVCOM_temp'], bracket=True)))
+espressoTemp = pd.Series(np.array(str2ndlist(data['ROMS_temp'], bracket=True)))
 
-####################### Hardcodes ###########################################3
-path = 'E:\\Mingchao\\paper\\vessel_dfs_G.csv'
-save_path = 'E:\\Mingchao\\paper\\'
-start_time = datetime.datetime(2019,1,1,0,0,0)
-end_time = datetime.datetime(2020,1,1,0,0,0)
+bottom_depth=[]
+t_temp=[] 
+s_temp=[]
+r_temp=[]
+f_temp=[]
+for i in range(len(data)):
+    for k in range(len(shipdepth[i])):
+        if tdepth[i][-1]==shipdepth[i][k]:
+            bottom_depth.append(tdepth[i][-1])
+            t_temp.append(ttemp[i][-1])
+            s_temp.append(shiptemp[i][k])
+            r_temp.append(espressoTemp.values[i][-1])
+            f_temp.append(fvcomTemp.values[i][-1])  
 
-####################### MAIN ###########################################3
-data = pd.read_csv(path, index_col=0)
-data['ENSEMBLE_T'] = 1.000000
-data['time'] = pd.to_datetime(data['time'])
-data = data.dropna()
-for i in data.index:
-    data['ENSEMBLE_T'][i] = (data['Doppio_T'][i]+data['FVCOM_T'][i]+data['GoMOLFs_T'][i])/3
-    if not start_time<data['time'][i]<end_time:
-        data = data.drop(i)
+Data = pd.DataFrame({'turtle_temp':t_temp,'ship_temp':s_temp,'fvcom_temp':f_temp,'roms_temp':r_temp,'bottom_depth':bottom_depth})
+Data['ENSEMBLE_T'] = 1.000000
 # Calculate statistics for Taylor diagram
-taylor_stats1 = taylor_statistics(data.Doppio_T, data.observation_T)
-taylor_stats2 = taylor_statistics(data.GoMOLFs_T, data.observation_T)
-taylor_stats3 = taylor_statistics(data.FVCOM_T, data.observation_T)
-taylor_stats4 = taylor_statistics(data.ENSEMBLE_T, data.observation_T)
+taylor_stats1 = taylor_statistics(Data.ship_temp, Data.turtle_temp)
+taylor_stats2 = taylor_statistics(Data.fvcom_temp, Data.turtle_temp)
+taylor_stats3 = taylor_statistics(Data.roms_temp, Data.turtle_temp)
+taylor_stats4 = taylor_statistics(Data.ENSEMBLE_T, Data.turtle_temp)
  # Store statistics in arrays
 sdev = np.array([taylor_stats1['sdev'][0], taylor_stats4['sdev'][1], 
                  taylor_stats2['sdev'][1], taylor_stats3['sdev'][1],
@@ -70,6 +98,6 @@ sm.taylor_diagram(sdev, crmsd, ccoef, markerLabel = label,
                       colSTD='b', styleSTD='-.', widthSTD=1.0, titleSTD ='on',
                       colCOR='k', styleCOR='--', widthCOR=1.0, titleCOR='on')
 # Write plot to file
-plt.savefig(save_path+'Taylor_Diagram.png')
+plt.savefig('Taylor_Diagram.png')
 # Show plot
 plt.show()
